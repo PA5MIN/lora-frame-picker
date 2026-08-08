@@ -30,10 +30,11 @@ class DesktopHelperTests(unittest.TestCase):
                 self.assertEqual(default_output_root(), override)
 
     def test_default_output_does_not_display_account_name(self):
+        account_name = Path.home().name
         with patch.dict(os.environ, {}, clear=True):
             displayed = str(default_output_root())
             self.assertTrue(displayed.startswith("~"))
-            self.assertNotIn(Path.home().name, displayed)
+            self.assertNotIn(account_name, displayed)
 
 
 if __name__ == "__main__":
