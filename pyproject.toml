@@ -1,6 +1,6 @@
 [project]
 name = "lora-frame-picker"
-version = "1.0.0"
+version = "1.0.1"
 description = "Cross-platform desktop and LAN WebUI tool for selecting LoRA dataset frames"
 readme = "README.md"
 requires-python = ">=3.9"

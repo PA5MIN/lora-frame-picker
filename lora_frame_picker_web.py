@@ -69,7 +69,11 @@ def display_path(path: Path) -> str:
         relative = expanded.relative_to(Path.home().resolve())
     except ValueError:
         return str(expanded)
-    return str(Path("~") / relative)
+    if relative == Path("."):
+        return "~"
+    # UI text is documentation-like rather than an OS path input. Always use
+    # forward slashes so screenshots and API responses look identical on every OS.
+    return f"~/{relative.as_posix()}"
 
 
 def configured_directory(key: str, environment_name: str, fallback: str) -> Path:
