@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>LoRA 数据集筛帧器</title><link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header><h1>LoRA 数据集筛帧器</h1><span>手机上传 · 视频挑帧 · JPEG 导出</span></header>
+  <main>
+    <section class="server-card"><strong>手机访问地址</strong><div id="server-urls">正在获取局域网地址…</div><button id="shutdown" class="danger">停止 WebUI</button></section>
+    <section class="upload"><label class="upload-button" for="files">从手机导入视频或图片</label><input id="files" type="file" multiple accept="video/*,image/*"><p id="upload-status">正在读取保存位置…</p><p class="paths" id="paths"></p></section>
+    <section class="workspace">
+      <aside><div class="aside-title">已导入媒体 <button id="refresh" title="刷新">↻</button></div><div id="media-list"></div></aside>
+      <article>
+        <div id="empty">先从手机导入一个视频或图片</div>
+        <video id="video" controls playsinline hidden></video><img id="image" alt="预览" hidden>
+        <div id="video-tools" hidden><label>时间 <input id="seek" type="range" min="0" max="0" step="0.01" value="0"></label><span id="time">00:00 / 00:00</span></div>
+        <div class="actions"><button id="previous">上一项</button><button id="next">下一项</button><button id="export" class="primary" disabled>保存当前画面</button></div>
+        <p id="status">正在读取导出位置…</p>
+      </article>
+    </section>
+  </main><script src="/static/app.js"></script>
+</body></html>

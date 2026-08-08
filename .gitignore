@@ -1,0 +1,71 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pyinstaller-cache/
+.build-venv/
+.coverage
+build/
+dist/
+*.spec
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Secrets, sessions, local settings, and network traces
+.env
+.env.*
+!.env.example
+config.yaml
+*.session
+*.conf
+*.lic
+*.har
+webui_settings.json
+
+# Models and large archives
+*.safetensors
+*.safetensors.*
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.tar
+*.tar.gz
+*.zip
+
+# User media and generated output
+Uploads/
+Exports/
+Frames/
+Crops/
+手机导入媒体/
+WebUI导出画面/
+导出画面/
+裁剪图片/
+数据/
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.webm
+*.m4v
+*.flv
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.bmp
+*.tif
+*.tiff
+
+# Public documentation screenshots are intentionally reviewed and tracked
+!docs/images/*.png
+
+# Local application bundles; CI creates release bundles from source
+*.app/

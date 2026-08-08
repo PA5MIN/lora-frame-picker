@@ -1,0 +1,70 @@
+name: Build release packages
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: LoRA-Frame-Picker-Windows-x64
+          - os: macos-15
+            artifact: LoRA-Frame-Picker-macOS-Apple-Silicon
+          - os: macos-15-intel
+            artifact: LoRA-Frame-Picker-macOS-Intel
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest
+      - run: python packaging/audit_release.py
+      - run: python packaging/build.py
+
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release-assets
+          $env:APP_VERSION = $env:GITHUB_REF_NAME.TrimStart("v")
+          $compiler = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
+          & $compiler packaging/windows-installer.iss
+
+      - name: Build macOS drag-to-install DMG
+        if: runner.os == 'macOS'
+        run: |
+          mkdir package release-assets
+          cp -R dist/LoRA-Frame-Picker.app package/
+          cp -R dist/LoRA-Phone-WebUI.app package/
+          cp README.md README_EN.md LICENSE SECURITY.md package/
+          ln -s /Applications package/Applications
+          hdiutil create -volname "LoRA Frame Picker" -srcfolder package -ov -format UDZO "release-assets/${{ matrix.artifact }}.dmg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: release-assets/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" release-assets/* --verify-tag --generate-notes --title "$GITHUB_REF_NAME"

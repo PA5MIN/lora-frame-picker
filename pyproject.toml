@@ -1,0 +1,21 @@
+[project]
+name = "lora-frame-picker"
+version = "1.0.0"
+description = "Cross-platform desktop and LAN WebUI tool for selecting LoRA dataset frames"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "PA5MIN" }]
+dependencies = [
+  "Flask>=3.0,<4",
+  "opencv-python>=4.8,<5",
+  "Pillow>=10,<13",
+]
+
+[project.urls]
+Repository = "https://github.com/PA5MIN/lora-frame-picker"
+Issues = "https://github.com/PA5MIN/lora-frame-picker/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
