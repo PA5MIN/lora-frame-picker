@@ -1,6 +1,6 @@
 # LoRA Frame Picker
 
-A local, cross-platform dataset preparation tool for selecting frames from videos, previewing and cropping images, and importing media from a phone through a protected LAN WebUI. Supports Windows 10/11, Apple Silicon Macs, and Intel Macs.
+Pick clear frames from videos, preview and crop images in batches, and prepare LoRA training datasets locally. Supports Windows 10/11, Apple Silicon Macs, and Intel Macs.
 
 [中文说明](README.md)
 
@@ -8,7 +8,17 @@ A local, cross-platform dataset preparation tool for selecting frames from video
 
 > Media is processed locally. The desktop application requires no account, API key, or cloud service. The optional phone WebUI is intended only for a trusted local network.
 
-## Features
+## Download
+
+| Your computer | Installer |
+|---|---|
+| Windows 10/11 x64 | [Download Windows Setup](https://github.com/PA5MIN/lora-frame-picker/releases/latest/download/LoRA-Frame-Picker-Windows-x64-Setup.exe) |
+| Apple Silicon Mac (M1/M2/M3/M4/M5) | [Download Apple Silicon DMG](https://github.com/PA5MIN/lora-frame-picker/releases/latest/download/LoRA-Frame-Picker-macOS-Apple-Silicon.dmg) |
+| Intel Mac | [Download Intel Mac DMG](https://github.com/PA5MIN/lora-frame-picker/releases/latest/download/LoRA-Frame-Picker-macOS-Intel.dmg) |
+
+Python and all runtime dependencies are included. Download the matching installer, open it, and start using the app—no development environment is required.
+
+## What you can do
 
 - Video playback, timeline seeking, frame-by-frame navigation, and JPEG export
 - Image preview, common aspect-ratio crops, original-image export, and automatic black-border removal
@@ -18,15 +28,7 @@ A local, cross-platform dataset preparation tool for selecting frames from video
 - User-writable default folders under `Pictures/LoRA Frame Picker`
 - Desktop installers with Python and all runtime dependencies bundled
 
-## Install: download and double-click
-
-Open the [**latest Release**](https://github.com/PA5MIN/lora-frame-picker/releases/latest) and download the package for your computer:
-
-- Windows x64: `LoRA-Frame-Picker-Windows-x64-Setup.exe`
-- Apple Silicon Mac (M1/M2/M3/M4/M5): `LoRA-Frame-Picker-macOS-Apple-Silicon.dmg`
-- Intel Mac: `LoRA-Frame-Picker-macOS-Intel.dmg`
-
-The installers bundle Python, OpenCV, Pillow, Flask, and the required runtime components. Regular users do not need to install Python, open a terminal, or resolve dependencies manually.
+## Installation
 
 ### Windows
 
@@ -37,12 +39,17 @@ The installers bundle Python, OpenCV, Pillow, Flask, and the required runtime co
 ### macOS
 
 1. Open the downloaded `.dmg`.
-2. Drag `LoRA Frame Picker.app` and, if needed, `LoRA Phone WebUI.app` to the Applications shortcut.
+2. Drag `LoRA-Frame-Picker.app` and, if needed, `LoRA-Phone-WebUI.app` to the Applications shortcut.
 3. Launch them later from Applications.
 
-The current packages are not commercially code-signed or Apple-notarized. Windows may show an unknown-publisher warning. On macOS, the first launch may require Control-clicking the app in Finder and choosing **Open**. Removing these warnings requires paid platform certificates; certificates and signing credentials must never be committed to this repository.
+Your operating system may show a security prompt the first time you open the app:
 
-## Run from source
+- **Windows:** confirm that the installer came from this project's GitHub Releases page, then choose **More info** → **Run anyway** if Windows displays an unknown-publisher warning. The setup wizard is in English; choose **Next** and then **Install**.
+- **macOS:** if a normal double-click is blocked, Control-click the app in Finder, choose **Open**, and confirm once more.
+
+These are first-launch operating-system prompts and do not change the app's local-only media processing.
+
+## Optional: run from source
 
 If a matching installer is not available, download the repository ZIP and extract it. The first source launch needs an internet connection to install dependencies; later launches can work offline.
 
@@ -109,7 +116,9 @@ OpenCV supports common formats but not every container and codec. Try MP4/H.264 
 
 Confirm that both devices use the same Wi-Fi, guest-network isolation is disabled, and the app is allowed through the computer firewall. Open the complete URL displayed by the computer, including the value after `key=`.
 
-## Development and releases
+Still having trouble or found a bug? Please open an [Issue](https://github.com/PA5MIN/lora-frame-picker/issues) with your operating system version, app version, and error message. Do not upload private media or secrets.
+
+## For developers and contributors
 
 ```bash
 python3 -m venv .venv
@@ -120,7 +129,7 @@ python3 -m venv .venv
 
 Pushing a `v*` tag starts GitHub Actions builds for Windows x64, Apple Silicon macOS, and Intel macOS. PyInstaller does not cross-compile these packages, so each artifact is built on its matching GitHub-hosted runner.
 
-## Privacy and contribution boundary
+### Privacy boundary for contributions
 
 This repository should contain only source code, static web assets, tests, documentation, and build configuration. Never commit:
 

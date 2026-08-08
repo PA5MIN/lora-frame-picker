@@ -1,6 +1,6 @@
 # LoRA 数据集筛帧器
 
-一个在本地运行的跨平台 LoRA 数据集整理工具：从视频中逐帧挑选画面、预览和裁剪图片，并通过局域网 WebUI 从手机导入媒体。支持 Windows 10/11、Apple Silicon Mac 和 Intel Mac。
+从视频中挑选清晰画面，批量预览、裁剪和整理 LoRA 训练图片。软件在本地运行，支持 Windows 10/11、Apple Silicon Mac 和 Intel Mac。
 
 [English](README_EN.md)
 
@@ -8,7 +8,17 @@
 
 > 所有媒体均在本机处理。桌面版无需账户、API Key 或云服务；手机 WebUI 仅用于可信局域网。
 
-## 功能
+## 直接下载
+
+| 你的电脑 | 安装包 |
+|---|---|
+| Windows 10/11 x64 | [下载 Windows 安装程序](https://github.com/PA5MIN/lora-frame-picker/releases/latest/download/LoRA-Frame-Picker-Windows-x64-Setup.exe) |
+| Apple Silicon Mac（M1/M2/M3/M4/M5） | [下载 Apple Silicon DMG](https://github.com/PA5MIN/lora-frame-picker/releases/latest/download/LoRA-Frame-Picker-macOS-Apple-Silicon.dmg) |
+| Intel Mac | [下载 Intel Mac DMG](https://github.com/PA5MIN/lora-frame-picker/releases/latest/download/LoRA-Frame-Picker-macOS-Intel.dmg) |
+
+安装包已包含 Python 和全部运行依赖。下载后双击安装即可，无需配置开发环境。
+
+## 你可以用它做什么
 
 - 视频播放、时间轴定位、逐帧前后移动与 JPEG 导出
 - 图片预览、常用比例裁剪、原图导出和批量去黑边
@@ -16,15 +26,7 @@
 - 源目录与导出目录防误用，自动避免重复扫描
 - 本地处理，不需要账户、API Key 或云服务
 
-## 普通用户：下载后双击安装
-
-前往仓库的 [**Releases**](https://github.com/PA5MIN/lora-frame-picker/releases/latest) 页面，按电脑类型下载：
-
-- Windows：`LoRA-Frame-Picker-Windows-x64-Setup.exe`
-- Apple Silicon Mac（M1/M2/M3/M4/M5）：`LoRA-Frame-Picker-macOS-Apple-Silicon.dmg`
-- Intel Mac：`LoRA-Frame-Picker-macOS-Intel.dmg`
-
-发布包已经包含 Python、OpenCV、Pillow、Flask 和所需运行组件。普通用户不需要安装 Python，不需要打开终端，也不需要手工部署依赖。
+## 安装方法
 
 ### Windows 安装
 
@@ -38,9 +40,14 @@
 2. 把 `LoRA-Frame-Picker.app` 和需要使用的 `LoRA-Phone-WebUI.app` 拖到旁边的 `Applications`。
 3. 以后从“应用程序”中双击启动。
 
-目前发布包未购买 Windows 代码签名证书，也未使用 Apple Developer ID 公证。因此 Windows 首次运行可能显示“未知发布者”，macOS 首次打开可能需要在 Finder 中右键应用并选择“打开”。完全消除这两类系统提示需要对应平台的付费开发者证书；证书不会放进开源仓库。
+首次打开时，系统可能显示安全提示：
 
-## 从源码一键运行
+- **Windows**：请确认安装包来自本项目的 GitHub Releases 页面，然后按系统提示选择“更多信息”→“仍要运行”。安装向导为英文，依次点击 **Next** 和 **Install** 即可。
+- **macOS**：如果双击无法打开，请在 Finder 中按住 Control 点击 App，选择“打开”，再确认一次。
+
+这些是首次启动时的系统提示，不影响软件在本地处理媒体。
+
+## 可选：从源码运行
 
 如果暂时没有与你电脑匹配的 Release，下载仓库 ZIP 并解压。首次运行需要联网安装依赖，之后可离线使用。
 
@@ -94,7 +101,7 @@ chmod +x *.command
 
 ### 提示找不到 Python
 
-从 python.org 安装 Python 3.9 或更高版本。Windows 安装时勾选加入 PATH，然后重新双击启动脚本。
+这一项只适用于从源码运行。请从 python.org 安装 Python 3.9 或更高版本。Windows 安装时勾选加入 PATH，然后重新双击启动脚本。
 
 ### 依赖安装失败
 
@@ -108,7 +115,9 @@ OpenCV 支持常见编码，但不保证支持所有容器和编码。先尝试 
 
 确认手机与电脑在同一 Wi-Fi、没有启用访客网络隔离，并允许程序通过系统防火墙。必须打开电脑页面顶部显示的完整链接，包括 `key=` 后的口令。
 
-## 开发与发布
+仍有问题或发现 Bug？请在 [Issues](https://github.com/PA5MIN/lora-frame-picker/issues) 中反馈，并附上操作系统版本、软件版本和报错信息；请勿上传私人媒体或密钥。
+
+## 开发者与贡献者
 
 ```bash
 python3 -m venv .venv
@@ -119,7 +128,7 @@ python3 -m venv .venv
 
 推送 `v*` 标签后，GitHub Actions 会生成 Windows 图形安装程序，以及 macOS Apple Silicon/Intel 两个拖放安装 DMG。PyInstaller 不能跨系统构建，因此每个平台都在对应的 GitHub 托管运行器上打包。
 
-## 隐私与开源边界
+### 提交代码时的隐私边界
 
 仓库只包含程序源码、网页静态文件、测试、文档和构建配置。请勿提交：
 
