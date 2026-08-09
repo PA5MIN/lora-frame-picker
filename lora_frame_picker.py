@@ -8,6 +8,7 @@ import tkinter as tk
 import shutil
 import os
 import sys
+import json
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
@@ -44,6 +45,96 @@ CROP_PRESETS = {
     "4:5 竖图 · 928 × 1152": (928, 1152),
     "2:3 竖图 · 832 × 1248": (832, 1248),
 }
+
+CROP_PRESETS_EN = {
+    "9:16 Portrait (popular) · 768 × 1376": (768, 1376),
+    "16:9 Landscape (popular) · 1376 × 768": (1376, 768),
+    "1:1 Square (popular) · 1024 × 1024": (1024, 1024),
+    "4:3 Landscape · 1184 × 896": (1184, 896),
+    "3:2 Landscape · 1248 × 832": (1248, 832),
+    "2.35:1 Ultrawide · 1568 × 672": (1568, 672),
+    "4:5 Portrait · 928 × 1152": (928, 1152),
+    "2:3 Portrait · 832 × 1248": (832, 1248),
+}
+
+
+TEXT = {
+    "zh": {
+        "app_title": "LoRA 数据集筛帧器", "subtitle": "视频筛帧 · 图片裁剪预览",
+        "language": "语言", "tab_media": "视频 / 媒体筛帧", "tab_crop": "图片裁剪预览",
+        "choose_media_folder": "选择媒体文件夹", "choose_media_files": "选择媒体文件",
+        "choose_output": "选择导出目录", "media_list": "媒体列表    🔴 视频    🟢 图片",
+        "no_media": "●  未加载媒体", "media_preview": "选择媒体文件夹后，在此预览画面",
+        "previous": "◀ 上一个", "play": "▶ 播放", "pause": "⏸ 暂停", "next": "下一个 ▶",
+        "save_frame": "保存当前画面  [S]", "choose_image_folder": "选择图片文件夹",
+        "image_list": "图片列表", "crop_preview": "选择图片文件夹后，在此预览裁剪效果",
+        "shortcuts": "空格：保存并下一张 · 1–8：切换尺寸 · [ / ]：循环尺寸",
+        "previous_image": "◀ 上一张", "next_image": "下一张 ▶", "crop_ratio": "裁剪比例：",
+        "use_original": "不裁剪，直接使用原图", "auto_black": "智能识别比例并去黑边",
+        "batch_black": "批量自动去黑边", "save_next": "保存并下一张  [空格]",
+        "no_media_status": "请选择包含图片或视频的文件夹", "unloaded_media": "未加载媒体", "unloaded_image": "未加载图片",
+        "preset_hint": "快捷尺寸：1=9:16 · 2=16:9 · 3=1:1 · 4=4:3 · 5=3:2 · 6=2.35:1 · 7=4:5 · 8=2:3",
+        "image_mode": "原图模式：导出时不裁剪", "video_signal": "●  视频媒体  ·  红灯：可连续保存多个视频帧",
+        "image_signal": "●  图片媒体  ·  绿灯：保存后自动进入下一张",
+        "select_image_folder": "选择包含图片的文件夹", "select_crop_output": "选择裁剪图片导出目录",
+        "select_media_folder": "选择媒体文件夹", "select_media": "选择图片或视频", "media_files": "媒体文件", "all_files": "所有文件",
+        "select_frame_output": "选择导出画面目录", "export_failed": "导出失败", "batch_failed": "批量处理失败",
+        "save_failed": "保存失败", "output_unavailable": "导出目录不可用", "separate_folders": "请分开源目录和导出目录", "save_blocked": "已阻止保存",
+        "no_images": "该文件夹中没有支持的图片文件", "loaded_images": "已载入 {count} 张图片", "read_image_failed": "无法读取图片：{error}",
+        "no_export_image": "没有可导出的图片", "exported": "✓ 已导出：{name}（{width} × {height}）", "original_exported": "✓ 已原样导出：{name}",
+        "choose_image_first": "请先选择图片文件夹", "loaded_media": "已载入 {count} 个媒体文件", "no_supported_media": "没有找到受支持的图片或视频文件",
+        "no_frame": "没有可保存的画面", "video_open_failed": "无法打开视频：{name}", "image_read_failed": "无法读取图片：{error}",
+        "video_status": "视频：{seconds:.1f} 秒，拖动进度条定位，S 保存画面", "image_position": "图片 · {width} × {height}", "image_status": "图片预览中，按 S 保存到导出目录",
+        "frame_position": "{current} / {total}  ·  第 {frame} 帧", "selected_files": "已选择 {count} 个媒体文件",
+    },
+    "en": {
+        "app_title": "LoRA Frame Picker", "subtitle": "Video frames · Image crop preview",
+        "language": "Language", "tab_media": "Video / Media", "tab_crop": "Image crop preview",
+        "choose_media_folder": "Choose media folder", "choose_media_files": "Choose media files",
+        "choose_output": "Choose output folder", "media_list": "Media list    🔴 Video    🟢 Image",
+        "no_media": "●  No media loaded", "media_preview": "Choose a media folder to preview it here",
+        "previous": "◀ Previous", "play": "▶ Play", "pause": "⏸ Pause", "next": "Next ▶",
+        "save_frame": "Save current frame  [S]", "choose_image_folder": "Choose image folder",
+        "image_list": "Image list", "crop_preview": "Choose an image folder to preview the crop",
+        "shortcuts": "Space: save & next · 1–8: crop preset · [ / ]: cycle presets",
+        "previous_image": "◀ Previous", "next_image": "Next ▶", "crop_ratio": "Crop ratio:",
+        "use_original": "Do not crop; use original image", "auto_black": "Detect ratio and remove black borders",
+        "batch_black": "Remove black borders in batch", "save_next": "Save & next  [Space]",
+        "no_media_status": "Choose a folder containing images or videos", "unloaded_media": "No media loaded", "unloaded_image": "No image loaded",
+        "preset_hint": "Shortcuts: 1=9:16 · 2=16:9 · 3=1:1 · 4=4:3 · 5=3:2 · 6=2.35:1 · 7=4:5 · 8=2:3",
+        "image_mode": "Original-image mode: export without cropping", "video_signal": "●  Video  ·  Red: save multiple frames from this video",
+        "image_signal": "●  Image  ·  Green: move to the next image after saving",
+        "select_image_folder": "Choose a folder containing images", "select_crop_output": "Choose crop output folder",
+        "select_media_folder": "Choose media folder", "select_media": "Choose images or videos", "media_files": "Media files", "all_files": "All files",
+        "select_frame_output": "Choose frame output folder", "export_failed": "Export failed", "batch_failed": "Batch processing failed",
+        "save_failed": "Save failed", "output_unavailable": "Output folder unavailable", "separate_folders": "Keep source and output folders separate", "save_blocked": "Save blocked",
+        "no_images": "No supported image files were found in this folder", "loaded_images": "Loaded {count} images", "read_image_failed": "Could not read image: {error}",
+        "no_export_image": "There is no image to export", "exported": "✓ Exported: {name} ({width} × {height})", "original_exported": "✓ Exported original: {name}",
+        "choose_image_first": "Choose an image folder first", "loaded_media": "Loaded {count} media files", "no_supported_media": "No supported image or video files were found",
+        "no_frame": "There is no frame to save", "video_open_failed": "Could not open video: {name}", "image_read_failed": "Could not read image: {error}",
+        "video_status": "Video: {seconds:.1f} sec · drag the timeline to seek · press S to save", "image_position": "Image · {width} × {height}", "image_status": "Previewing image · press S to save to the output folder",
+        "frame_position": "{current} / {total}  ·  Frame {frame}", "selected_files": "Selected {count} media files",
+    },
+}
+
+
+def settings_path() -> Path:
+    """Return the per-user settings file; it is never stored in the project."""
+    if sys.platform == "win32":
+        root = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+    elif sys.platform == "darwin":
+        root = Path.home() / "Library" / "Application Support"
+    else:
+        root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return root / "LoRA Frame Picker" / "settings.json"
+
+
+def load_language() -> str:
+    try:
+        language = json.loads(settings_path().read_text(encoding="utf-8")).get("language")
+        return language if language in TEXT else "zh"
+    except (OSError, ValueError, TypeError):
+        return "zh"
 
 
 def detect_black_border(image: Image.Image) -> tuple[int, int, int, int]:
@@ -135,7 +226,8 @@ def describe_aspect_ratio(width: int, height: int) -> str:
 class FramePicker(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("LoRA 数据集筛帧器")
+        self.language = load_language()
+        self.title(self.t("app_title"))
         self.geometry("1420x900")
         self.minsize(1000, 680)
         self.configure(bg="#17191e")
@@ -156,9 +248,9 @@ class FramePicker(tk.Tk):
         output_root = default_output_root()
         self.output_dir = tk.StringVar(value=str(output_root / "Frames"))
         self.source_dir = tk.StringVar()
-        self.status = tk.StringVar(value="请选择包含图片或视频的文件夹")
+        self.status = tk.StringVar(value=self.t("no_media_status"))
         self.position_text = tk.StringVar(value="—")
-        self.file_text = tk.StringVar(value="未加载媒体")
+        self.file_text = tk.StringVar(value=self.t("unloaded_media"))
         self._updating_scale = False
         self._save_count = 0
 
@@ -173,18 +265,63 @@ class FramePicker(tk.Tk):
         self.crop_start_rect = (0.0, 0.0, 1.0, 1.0)
         self.crop_source_dir = tk.StringVar()
         self.crop_output_dir = tk.StringVar(value=str(output_root / "Crops"))
-        self.crop_preset = tk.StringVar(value=next(iter(CROP_PRESETS)))
+        self.crop_preset = tk.StringVar(value=next(iter(self._crop_presets())))
         self.crop_use_original = tk.BooleanVar(value=False)
         # 裁剪页默认先做比例/黑边识别，避免把视频画布比例误当成图片比例。
         self.crop_remove_black = tk.BooleanVar(value=True)
         self.crop_detected_box = (0, 0, 1, 1)
-        self.crop_file_text = tk.StringVar(value="未加载图片")
-        self.crop_status = tk.StringVar(value="快捷尺寸：1=9:16 · 2=16:9 · 3=1:1 · 4=4:3 · 5=3:2 · 6=2.35:1 · 7=4:5 · 8=2:3")
+        self.crop_file_text = tk.StringVar(value=self.t("unloaded_image"))
+        self.crop_status = tk.StringVar(value=self.t("preset_hint"))
 
         self._setup_style()
         self._build_ui()
         self._bind_keys()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def t(self, key: str, **values: object) -> str:
+        return TEXT[self.language][key].format(**values)
+
+    def _crop_presets(self) -> dict[str, tuple[int, int]]:
+        return CROP_PRESETS_EN if self.language == "en" else CROP_PRESETS
+
+    def _language_label(self) -> str:
+        return "English" if self.language == "en" else "中文"
+
+    def _set_language(self, value: str) -> None:
+        new_language = "en" if value == "English" else "zh"
+        if new_language == self.language:
+            return
+        old_preset_index = list(self._crop_presets()).index(self.crop_preset.get())
+        self.language = new_language
+        self.crop_preset.set(list(self._crop_presets())[old_preset_index])
+        try:
+            path = settings_path()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({"language": self.language}), encoding="utf-8")
+        except OSError:
+            pass
+        self.title(self.t("app_title"))
+        self._rebuild_ui()
+
+    def _rebuild_ui(self) -> None:
+        """Refresh visible labels immediately while keeping selected files and settings."""
+        for child in self.winfo_children():
+            child.destroy()
+        self._build_ui()
+        for path in self.files:
+            signal = "🔴" if path.suffix.lower() in VIDEO_EXTENSIONS else "🟢"
+            self.file_list.insert(tk.END, f"{signal}  {path.name}")
+        if self.index >= 0:
+            self.file_list.selection_set(self.index)
+            self.file_list.see(self.index)
+            self._set_preview_media_signal(self.is_video)
+            self.render_image()
+        for path in self.crop_files:
+            self.crop_list.insert(tk.END, f"🖼  {path.name}")
+        if self.crop_index >= 0:
+            self.crop_list.selection_set(self.crop_index)
+            self.crop_list.see(self.crop_index)
+            self.render_crop_preview()
 
     def _setup_style(self) -> None:
         style = ttk.Style(self)
@@ -217,15 +354,22 @@ class FramePicker(tk.Tk):
     def _build_ui(self) -> None:
         header = ttk.Frame(self, padding=(22, 16, 22, 12))
         header.pack(fill="x")
-        ttk.Label(header, text="LoRA 数据集筛帧器", style="Title.TLabel").pack(side="left")
-        ttk.Label(header, text="  视频筛帧 · 图片裁剪预览", style="TLabel").pack(side="left", padx=18)
+        ttk.Label(header, text=self.t("app_title"), style="Title.TLabel").pack(side="left")
+        ttk.Label(header, text=f"  {self.t('subtitle')}", style="TLabel").pack(side="left", padx=18)
+        language = ttk.Frame(header)
+        language.pack(side="right")
+        ttk.Label(language, text=f"{self.t('language')}: ", style="Sub.TLabel").pack(side="left")
+        self.language_selector = ttk.Combobox(language, values=("中文", "English"), state="readonly", width=9)
+        self.language_selector.set(self._language_label())
+        self.language_selector.bind("<<ComboboxSelected>>", lambda _event: self._set_language(self.language_selector.get()))
+        self.language_selector.pack(side="left")
 
         # macOS 的 ttk.Notebook 在深色 clam 主题下会强制画一圈亮色客户区边框。
         # 自绘页签栏使三平台外观一致，同时避免视觉上的“白框”。
         tab_bar = tk.Frame(self, bg="#17191e", height=42, bd=0, highlightthickness=0)
         tab_bar.pack(fill="x", padx=16)
         self._tab_buttons: list[tk.Label] = []
-        for index, label in enumerate(("视频 / 媒体筛帧", "图片裁剪预览")):
+        for index, label in enumerate((self.t("tab_media"), self.t("tab_crop"))):
             button = tk.Label(tab_bar, text=label, bg="#252a33", fg="#aeb8c6",
                               bd=0, relief="flat", highlightthickness=0,
                               padx=18, pady=9, font=(UI_FONT, 12), cursor="hand2")
@@ -248,10 +392,10 @@ class FramePicker(tk.Tk):
 
         path_bar = ttk.Frame(video_tab, style="Panel.TFrame", padding=12)
         path_bar.pack(fill="x", padx=18)
-        ttk.Button(path_bar, text="选择媒体文件夹", command=self.choose_source).grid(row=0, column=0, padx=(0, 9))
-        ttk.Button(path_bar, text="选择媒体文件", command=self.choose_files).grid(row=0, column=1, padx=(0, 9))
+        ttk.Button(path_bar, text=self.t("choose_media_folder"), command=self.choose_source).grid(row=0, column=0, padx=(0, 9))
+        ttk.Button(path_bar, text=self.t("choose_media_files"), command=self.choose_files).grid(row=0, column=1, padx=(0, 9))
         ttk.Entry(path_bar, textvariable=self.source_dir).grid(row=0, column=2, sticky="ew")
-        ttk.Button(path_bar, text="选择导出目录", command=self.choose_output).grid(row=0, column=3, padx=(9, 0))
+        ttk.Button(path_bar, text=self.t("choose_output"), command=self.choose_output).grid(row=0, column=3, padx=(9, 0))
         ttk.Entry(path_bar, textvariable=self.output_dir, width=32).grid(row=0, column=4, padx=(9, 0), sticky="ew")
         path_bar.columnconfigure(2, weight=3)
         path_bar.columnconfigure(4, weight=2)
@@ -261,7 +405,7 @@ class FramePicker(tk.Tk):
         sidebar = ttk.Frame(body, style="Panel.TFrame", padding=8, width=285)
         sidebar.pack(side="left", fill="y")
         sidebar.pack_propagate(False)
-        ttk.Label(sidebar, text="媒体列表    🔴 视频    🟢 图片", style="Sub.TLabel").pack(anchor="w", padx=4, pady=(2, 7))
+        ttk.Label(sidebar, text=self.t("media_list"), style="Sub.TLabel").pack(anchor="w", padx=4, pady=(2, 7))
         self.file_list = tk.Listbox(sidebar, bg="#171b21", fg="#dce3ed", selectbackground="#3478f6",
                                     selectforeground="#ffffff", borderwidth=0, highlightthickness=0,
                                     font=(UI_FONT, 12), activestyle="none")
@@ -277,12 +421,12 @@ class FramePicker(tk.Tk):
         signal_bar = tk.Frame(main, bg="#20242c", height=42)
         signal_bar.pack(fill="x", pady=(0, 8))
         signal_bar.pack_propagate(False)
-        self.preview_signal = tk.Label(signal_bar, text="●  未加载媒体", bg="#20242c", fg="#8d97a6",
+        self.preview_signal = tk.Label(signal_bar, text=self.t("no_media"), bg="#20242c", fg="#8d97a6",
                                        anchor="w", padx=14, font=(UI_FONT, 15, "bold"))
         self.preview_signal.pack(fill="both", expand=True)
         self.preview_box = tk.Frame(main, bg="#08090b", highlightbackground="#353c48", highlightthickness=1)
         self.preview_box.pack(fill="both", expand=True)
-        self.preview = tk.Label(self.preview_box, text="选择媒体文件夹后，在此预览画面", bg="#08090b", fg="#808b9a",
+        self.preview = tk.Label(self.preview_box, text=self.t("media_preview"), bg="#08090b", fg="#808b9a",
                                 font=(UI_FONT, 17))
         self.preview.place(relx=.5, rely=.5, anchor="center")
         # 图片标签会随缩略图尺寸变化；只能监听外层预览区，避免缩略图被反复缩小。
@@ -295,11 +439,11 @@ class FramePicker(tk.Tk):
 
         controls = ttk.Frame(main, style="Panel.TFrame", padding=(13, 10))
         controls.pack(fill="x")
-        ttk.Button(controls, text="◀ 上一个", command=self.previous_file).pack(side="left")
-        self.play_button = ttk.Button(controls, text="▶ 播放", command=self.toggle_play)
+        ttk.Button(controls, text=self.t("previous"), command=self.previous_file).pack(side="left")
+        self.play_button = ttk.Button(controls, text=self.t("play"), command=self.toggle_play)
         self.play_button.pack(side="left", padx=8)
-        ttk.Button(controls, text="下一个 ▶", command=self.next_file).pack(side="left")
-        ttk.Button(controls, text="保存当前画面  [S]", style="Accent.TButton", command=self.save_frame).pack(side="right")
+        ttk.Button(controls, text=self.t("next"), command=self.next_file).pack(side="left")
+        ttk.Button(controls, text=self.t("save_frame"), style="Accent.TButton", command=self.save_frame).pack(side="right")
         self.seek = ttk.Scale(controls, from_=0, to=1000, orient="horizontal", command=self.seek_to)
         self.seek.pack(side="left", fill="x", expand=True, padx=18)
 
@@ -327,9 +471,9 @@ class FramePicker(tk.Tk):
     def _build_crop_tab(self, parent: ttk.Frame) -> None:
         path_bar = ttk.Frame(parent, style="Panel.TFrame", padding=12)
         path_bar.pack(fill="x", padx=18, pady=(10, 0))
-        ttk.Button(path_bar, text="选择图片文件夹", command=self.choose_crop_folder).grid(row=0, column=0, padx=(0, 9))
+        ttk.Button(path_bar, text=self.t("choose_image_folder"), command=self.choose_crop_folder).grid(row=0, column=0, padx=(0, 9))
         ttk.Entry(path_bar, textvariable=self.crop_source_dir).grid(row=0, column=1, sticky="ew")
-        ttk.Button(path_bar, text="选择导出目录", command=self.choose_crop_output).grid(row=0, column=2, padx=(9, 0))
+        ttk.Button(path_bar, text=self.t("choose_output"), command=self.choose_crop_output).grid(row=0, column=2, padx=(9, 0))
         ttk.Entry(path_bar, textvariable=self.crop_output_dir, width=32).grid(row=0, column=3, padx=(9, 0), sticky="ew")
         path_bar.columnconfigure(1, weight=3)
         path_bar.columnconfigure(3, weight=2)
@@ -339,7 +483,7 @@ class FramePicker(tk.Tk):
         sidebar = ttk.Frame(body, style="Panel.TFrame", padding=8, width=285)
         sidebar.pack(side="left", fill="y")
         sidebar.pack_propagate(False)
-        ttk.Label(sidebar, text="图片列表", style="Sub.TLabel").pack(anchor="w", padx=4, pady=(2, 7))
+        ttk.Label(sidebar, text=self.t("image_list"), style="Sub.TLabel").pack(anchor="w", padx=4, pady=(2, 7))
         self.crop_list = tk.Listbox(sidebar, bg="#171b21", fg="#dce3ed", selectbackground="#3478f6",
                                     selectforeground="#ffffff", borderwidth=0, highlightthickness=0,
                                     font=(UI_FONT, 12), activestyle="none")
@@ -366,22 +510,22 @@ class FramePicker(tk.Tk):
         info = ttk.Frame(main, padding=(2, 10, 2, 4))
         info.pack(fill="x")
         ttk.Label(info, textvariable=self.crop_file_text).pack(side="left")
-        ttk.Label(info, text="空格：保存并下一张 · 1–8：切换尺寸 · [ / ]：循环尺寸", style="Sub.TLabel").pack(side="right")
+        ttk.Label(info, text=self.t("shortcuts"), style="Sub.TLabel").pack(side="right")
 
         controls = ttk.Frame(main, style="Panel.TFrame", padding=(13, 10))
         controls.pack(fill="x")
-        ttk.Button(controls, text="◀ 上一张", command=lambda: self.change_crop_file(-1)).pack(side="left")
-        ttk.Button(controls, text="下一张 ▶", command=lambda: self.change_crop_file(1)).pack(side="left", padx=8)
-        ttk.Label(controls, text="裁剪比例：", style="Sub.TLabel").pack(side="left", padx=(14, 2))
-        preset = ttk.Combobox(controls, textvariable=self.crop_preset, values=list(CROP_PRESETS), state="readonly", width=27)
+        ttk.Button(controls, text=self.t("previous_image"), command=lambda: self.change_crop_file(-1)).pack(side="left")
+        ttk.Button(controls, text=self.t("next_image"), command=lambda: self.change_crop_file(1)).pack(side="left", padx=8)
+        ttk.Label(controls, text=self.t("crop_ratio"), style="Sub.TLabel").pack(side="left", padx=(14, 2))
+        preset = ttk.Combobox(controls, textvariable=self.crop_preset, values=list(self._crop_presets()), state="readonly", width=31)
         preset.pack(side="left")
         preset.bind("<<ComboboxSelected>>", lambda _e: self.reset_crop_rect())
-        ttk.Checkbutton(controls, text="不裁剪，直接使用原图", variable=self.crop_use_original,
+        ttk.Checkbutton(controls, text=self.t("use_original"), variable=self.crop_use_original,
                         command=self.render_crop_preview).pack(side="left", padx=16)
-        ttk.Checkbutton(controls, text="智能识别比例并去黑边", variable=self.crop_remove_black,
+        ttk.Checkbutton(controls, text=self.t("auto_black"), variable=self.crop_remove_black,
                         command=self.toggle_auto_black_crop).pack(side="left", padx=(0, 12))
-        ttk.Button(controls, text="批量自动去黑边", command=self.batch_remove_black).pack(side="left")
-        ttk.Button(controls, text="保存并下一张  [空格]", style="Accent.TButton",
+        ttk.Button(controls, text=self.t("batch_black"), command=self.batch_remove_black).pack(side="left")
+        ttk.Button(controls, text=self.t("save_next"), style="Accent.TButton",
                    command=self.export_crop_and_next).pack(side="right")
 
         status = ttk.Frame(parent, style="Panel.TFrame", padding=(20, 8))
@@ -396,7 +540,7 @@ class FramePicker(tk.Tk):
         self.bind_all("<Down>", self._handle_down)
         self.bind_all("s", self._handle_save)
         self.bind_all("S", self._handle_save)
-        for index in range(len(CROP_PRESETS)):
+        for index in range(len(self._crop_presets())):
             self.bind_all(str(index + 1), lambda event, i=index: self._handle_preset_shortcut(event, i))
         self.bind_all("[", lambda event: self._handle_preset_cycle(event, -1))
         self.bind_all("]", lambda event: self._handle_preset_cycle(event, 1))
@@ -444,7 +588,7 @@ class FramePicker(tk.Tk):
     def _handle_preset_shortcut(self, _event: tk.Event, index: int) -> str | None:
         if not self._on_crop_tab() or self._shortcut_is_typing():
             return None
-        presets = list(CROP_PRESETS)
+        presets = list(self._crop_presets())
         if 0 <= index < len(presets):
             self.crop_preset.set(presets[index])
             self.reset_crop_rect()
@@ -454,7 +598,7 @@ class FramePicker(tk.Tk):
     def _handle_preset_cycle(self, _event: tk.Event, offset: int) -> str | None:
         if not self._on_crop_tab() or self._shortcut_is_typing():
             return None
-        presets = list(CROP_PRESETS)
+        presets = list(self._crop_presets())
         current = presets.index(self.crop_preset.get())
         target = (current + offset) % len(presets)
         self.crop_preset.set(presets[target])
@@ -464,7 +608,7 @@ class FramePicker(tk.Tk):
 
     # ---- 图片裁剪页 -------------------------------------------------
     def choose_crop_folder(self) -> None:
-        folder = filedialog.askdirectory(title="选择包含图片的文件夹")
+        folder = filedialog.askdirectory(title=self.t("select_image_folder"))
         if not folder:
             return
         root = Path(folder)
@@ -478,13 +622,13 @@ class FramePicker(tk.Tk):
             self.crop_index = -1
             self.crop_image = None
             self.crop_canvas.delete("all")
-            self.crop_status.set("该文件夹中没有支持的图片文件")
+            self.crop_status.set(self.t("no_images"))
             return
-        self.crop_status.set(f"已载入 {len(self.crop_files)} 张图片")
+        self.crop_status.set(self.t("loaded_images", count=len(self.crop_files)))
         self.open_crop_file(0)
 
     def choose_crop_output(self) -> None:
-        folder = filedialog.askdirectory(title="选择裁剪图片导出目录")
+        folder = filedialog.askdirectory(title=self.t("select_crop_output"))
         if folder:
             self.crop_output_dir.set(folder)
 
@@ -504,7 +648,7 @@ class FramePicker(tk.Tk):
             with Image.open(self.crop_files[index]) as image:
                 self.crop_image = ImageOps.exif_transpose(image).convert("RGB")
         except Exception as exc:
-            self.crop_status.set(f"无法读取图片：{exc}")
+            self.crop_status.set(self.t("read_image_failed", error=exc))
             return
         self.crop_index = index
         self.crop_list.selection_clear(0, tk.END)
@@ -521,7 +665,7 @@ class FramePicker(tk.Tk):
         self.reset_crop_rect()
 
     def _crop_ratio(self) -> float:
-        width, height = CROP_PRESETS[self.crop_preset.get()]
+        width, height = self._crop_presets()[self.crop_preset.get()]
         return width / height
 
     def reset_crop_rect(self) -> None:
@@ -564,7 +708,7 @@ class FramePicker(tk.Tk):
         canvas = self.crop_canvas
         canvas.delete("all")
         if not self.crop_image:
-            canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2, text="选择图片文件夹后，在此预览裁剪效果",
+            canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2, text=self.t("crop_preview"),
                                fill="#808b9a", font=(UI_FONT, 17))
             return
         canvas_w, canvas_h = canvas.winfo_width(), canvas.winfo_height()
@@ -580,7 +724,7 @@ class FramePicker(tk.Tk):
         canvas.create_image(left, top, image=self.crop_photo, anchor="nw")
         self.crop_display = (left, top, scale, scale)
         if self.crop_use_original.get():
-            canvas.create_text(left + 12, top + 12, text="原图模式：导出时不裁剪", anchor="nw", fill="#ffffff",
+            canvas.create_text(left + 12, top + 12, text=self.t("image_mode"), anchor="nw", fill="#ffffff",
                                font=(UI_FONT, 13, "bold"))
             return
         x, y, width, height = self.crop_rect
@@ -688,7 +832,7 @@ class FramePicker(tk.Tk):
 
     def export_crop(self) -> bool:
         if not self.crop_image or self.crop_index < 0:
-            self.crop_status.set("没有可导出的图片")
+            self.crop_status.set(self.t("no_export_image"))
             return False
         try:
             output = Path(self.crop_output_dir.get()).expanduser()
@@ -697,28 +841,28 @@ class FramePicker(tk.Tk):
             if self.crop_use_original.get():
                 target = self._unique_path(output / source.name)
                 shutil.copy2(source, target)
-                self.crop_status.set(f"✓ 已原样导出：{target.name}")
+                self.crop_status.set(self.t("original_exported", name=target.name))
                 return True
             cropped = self.crop_image.crop(self._crop_box())
             if self.crop_remove_black.get():
                 target_w, target_h = cropped.size
                 label = "去黑边"
             else:
-                target_w, target_h = CROP_PRESETS[self.crop_preset.get()]
+                target_w, target_h = self._crop_presets()[self.crop_preset.get()]
                 cropped = cropped.resize((target_w, target_h), Image.Resampling.LANCZOS)
                 label = self.crop_preset.get().split()[0].replace(":", "x")
             target = self._unique_path(output / f"{source.stem}_{label}.jpg")
             cropped.save(target, "JPEG", quality=95, subsampling=0)
-            self.crop_status.set(f"✓ 已导出：{target.name}（{target_w} × {target_h}）")
+            self.crop_status.set(self.t("exported", name=target.name, width=target_w, height=target_h))
             return True
         except Exception as exc:
-            messagebox.showerror("导出失败", str(exc))
+            messagebox.showerror(self.t("export_failed"), str(exc))
             return False
 
     def batch_remove_black(self) -> None:
         """把当前图片文件夹中的图片批量裁掉四周连续黑边。"""
         if not self.crop_files:
-            self.crop_status.set("请先选择图片文件夹")
+            self.crop_status.set(self.t("choose_image_first"))
             return
         output = Path(self.crop_output_dir.get()).expanduser()
         try:
@@ -741,18 +885,18 @@ class FramePicker(tk.Tk):
             if saved:
                 self.open_crop_file(self.crop_index if self.crop_index >= 0 else 0)
         except Exception as exc:
-            messagebox.showerror("批量处理失败", str(exc))
+            messagebox.showerror(self.t("batch_failed"), str(exc))
 
     def choose_source(self) -> None:
-        folder = filedialog.askdirectory(title="选择媒体文件夹")
+        folder = filedialog.askdirectory(title=self.t("select_media_folder"))
         if folder:
             self.load_folder(Path(folder))
 
     def choose_files(self) -> None:
         chosen = filedialog.askopenfilenames(
-            title="选择图片或视频",
-            filetypes=[("媒体文件", "*.jpg *.jpeg *.png *.webp *.bmp *.tif *.tiff *.mp4 *.mov *.mkv *.avi *.webm *.m4v *.flv"),
-                       ("所有文件", "*.*")],
+            title=self.t("select_media"),
+            filetypes=[(self.t("media_files"), "*.jpg *.jpeg *.png *.webp *.bmp *.tif *.tiff *.mp4 *.mov *.mkv *.avi *.webm *.m4v *.flv"),
+                       (self.t("all_files"), "*.*")],
         )
         if not chosen:
             return
@@ -761,17 +905,17 @@ class FramePicker(tk.Tk):
         # 多选文件没有统一的源目录，不应用文件夹扫描的导出目录规则。
         self.media_source_root = None
         self.files = [Path(p) for p in chosen if Path(p).suffix.lower() in MEDIA_EXTENSIONS]
-        self.source_dir.set(f"已选择 {len(self.files)} 个媒体文件")
+        self.source_dir.set(self.t("selected_files", count=len(self.files)))
         self.file_list.delete(0, tk.END)
         for p in self.files:
             signal = "🔴" if p.suffix.lower() in VIDEO_EXTENSIONS else "🟢"
             self.file_list.insert(tk.END, f"{signal}  {p.name}")
         if self.files:
-            self.status.set(f"已载入 {len(self.files)} 个媒体文件")
+            self.status.set(self.t("loaded_media", count=len(self.files)))
             self.open_file(0)
 
     def choose_output(self) -> None:
-        folder = filedialog.askdirectory(title="选择导出画面目录")
+        folder = filedialog.askdirectory(title=self.t("select_frame_output"))
         if folder:
             output = Path(folder).expanduser().resolve()
             if self.media_source_root and output == self.media_source_root:
@@ -808,9 +952,9 @@ class FramePicker(tk.Tk):
             self.file_list.insert(tk.END, f"{signal}  {p.name}")
         if not self.files:
             self.index = -1
-            self.status.set("没有找到受支持的图片或视频文件")
+            self.status.set(self.t("no_supported_media"))
             return
-        self.status.set(f"已载入 {len(self.files)} 个媒体文件")
+        self.status.set(self.t("loaded_media", count=len(self.files)))
         self.open_file(0)
 
     @staticmethod
@@ -843,13 +987,13 @@ class FramePicker(tk.Tk):
         if self.is_video:
             self.cap = cv2.VideoCapture(str(path))
             if not self.cap.isOpened():
-                self.status.set(f"无法打开视频：{path.name}")
+                self.status.set(self.t("video_open_failed", name=path.name))
                 return
             self.duration_frames = max(1, int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)))
             self.fps = self.cap.get(cv2.CAP_PROP_FPS) or 25.0
             self.current_frame = 0
             self.show_video_frame(0)
-            self.status.set(f"视频：{self.duration_frames / self.fps:.1f} 秒，拖动进度条定位，S 保存画面")
+            self.status.set(self.t("video_status", seconds=self.duration_frames / self.fps))
         else:
             try:
                 with Image.open(path) as im:
@@ -857,19 +1001,19 @@ class FramePicker(tk.Tk):
                 self.duration_frames = 1
                 self.current_frame = 0
                 self.render_image()
-                self.position_text.set(f"图片 · {self.current_image.width} × {self.current_image.height}")
-                self.status.set("图片预览中，按 S 保存到导出目录")
+                self.position_text.set(self.t("image_position", width=self.current_image.width, height=self.current_image.height))
+                self.status.set(self.t("image_status"))
             except Exception as exc:
-                self.status.set(f"无法读取图片：{exc}")
+                self.status.set(self.t("image_read_failed", error=exc))
 
     def _set_preview_media_signal(self, is_video: bool) -> None:
         """在预览窗口正上方显示当前媒体类型，方便快速筛选。"""
         if not self.preview_signal:
             return
         if is_video:
-            self.preview_signal.configure(text="●  视频媒体  ·  红灯：可连续保存多个视频帧", fg="#ff5b61")
+            self.preview_signal.configure(text=self.t("video_signal"), fg="#ff5b61")
         else:
-            self.preview_signal.configure(text="●  图片媒体  ·  绿灯：保存后自动进入下一张", fg="#39d96b")
+            self.preview_signal.configure(text=self.t("image_signal"), fg="#39d96b")
 
     def show_video_frame(self, frame: int) -> None:
         if not self.cap:
@@ -884,7 +1028,7 @@ class FramePicker(tk.Tk):
         self.render_image()
         seconds = frame / self.fps
         total = self.duration_frames / self.fps
-        self.position_text.set(f"{self._format_time(seconds)} / {self._format_time(total)}  ·  第 {frame + 1} 帧")
+        self.position_text.set(self.t("frame_position", current=self._format_time(seconds), total=self._format_time(total), frame=frame + 1))
         self._updating_scale = True
         self.seek.set(frame / max(1, self.duration_frames - 1) * 1000)
         self._updating_scale = False
@@ -931,7 +1075,7 @@ class FramePicker(tk.Tk):
         if not self.is_video or not self.cap:
             return
         self.playing = not self.playing
-        self.play_button.configure(text="⏸ 暂停" if self.playing else "▶ 播放")
+        self.play_button.configure(text=self.t("pause") if self.playing else self.t("play"))
         if self.playing:
             self._play_next()
 
@@ -949,11 +1093,11 @@ class FramePicker(tk.Tk):
     def stop_playback(self) -> None:
         self.playing = False
         if hasattr(self, "play_button"):
-            self.play_button.configure(text="▶ 播放")
+            self.play_button.configure(text=self.t("play"))
 
     def save_frame(self) -> None:
         if not self.current_image or self.index < 0:
-            self.status.set("没有可保存的画面")
+            self.status.set(self.t("no_frame"))
             return
         try:
             output = Path(self.output_dir.get()).expanduser()
@@ -978,7 +1122,7 @@ class FramePicker(tk.Tk):
                 self.next_file()
                 self.status.set(saved_message + " · 已自动进入下一个媒体")
         except Exception as exc:
-            messagebox.showerror("保存失败", str(exc))
+            messagebox.showerror(self.t("save_failed"), str(exc))
 
     @staticmethod
     def _unique_path(path: Path) -> Path:
